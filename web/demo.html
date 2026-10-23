@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sheet segmentation demo</title>
+<style>
+  body{font:15px/1.4 system-ui,sans-serif;max-width:720px;margin:24px auto;padding:0 16px;color:#111}
+  canvas{max-width:100%;border:1px solid #ccc;display:block;margin-top:12px}
+  code{background:#eee;padding:1px 4px}
+  #st{color:#555;margin-top:8px}
+</style>
+</head>
+<body>
+<h1>Sheet segmentation demo</h1>
+<p>Pick a photo of a sheet of paper. The network runs in your browser (no upload). Serve this folder over HTTP, e.g. <code>python -m http.server</code>, because the weights are fetched.</p>
+<input type="file" id="f" accept="image/*">
+<div id="st">Loading weights…</div>
+<canvas id="c"></canvas>
+<script src="docnet.js"></script>
+<script>
+const st = document.getElementById('st'), cv = document.getElementById('c');
+DocNet.load('docnet').then(() => st.textContent = 'Ready. Choose an image.').catch(e => st.textContent = 'Could not load weights: ' + e);
+document.getElementById('f').onchange = async e => {
+  const file = e.target.files[0]; if (!file || !DocNet.ready) return;
+  const bmp = await createImageBitmap(file), k = Math.min(1, 900 / Math.max(bmp.width, bmp.height)), W = bmp.width * k | 0, H = bmp.height * k | 0;
+  cv.width = W; cv.height = H; const g = cv.getContext('2d'); g.drawImage(bmp, 0, 0, W, H);
+  const n = DocNet.size, s = document.createElement('canvas'); s.width = s.height = n; const sg = s.getContext('2d', {willReadFrequently: true}); sg.drawImage(bmp, 0, 0, n, n);
+  const t0 = performance.now(), p = DocNet.run(sg.getImageData(0, 0, n, n).data, 4), ms = performance.now() - t0;
+  // green overlay = probability; corners = extreme points of the thresholded mask along the two diagonals
+  const ov = g.getImageData(0, 0, W, H); let c = [[1e9, 0, 0], [-1e9, 0, 0], [-1e9, 0, 0], [1e9, 0, 0]];
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const pr = p[Math.min(n - 1, y * n / H | 0) * n + Math.min(n - 1, x * n / W | 0)], i = (y * W + x) * 4; ov.data[i + 1] = Math.min(255, ov.data[i + 1] + 120 * pr); ov.data[i] *= 1 - .35 * pr; ov.data[i + 2] *= 1 - .35 * pr;
+    if (pr > .5) { const a = x + y, d = x - y; if (a < c[0][0]) c[0] = [a, x, y]; if (d > c[1][0]) c[1] = [d, x, y]; if (a > c[2][0]) c[2] = [a, x, y]; if (d < c[3][0]) c[3] = [d, x, y]; } }
+  g.putImageData(ov, 0, 0);
+  if (c[0][0] < 1e8) { g.strokeStyle = '#00e676'; g.lineWidth = Math.max(2, W / 200); g.beginPath(); c.forEach(([, x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath(); g.stroke(); }
+  st.textContent = `Inference: ${ms.toFixed(0)} ms on a ${n}x${n} input.`;
+};
+</script>
+</body>
+</html>

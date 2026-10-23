@@ -1,0 +1,9 @@
+  VAL step 1000: IoU 0.9702  quad<4%: 0.606
+  VAL step 2000: IoU 0.9811  quad<4%: 0.680
+  VAL step 3000: IoU 0.9868  quad<4%: 0.691
+  VAL step 4000: IoU 0.9860  quad<4%: 0.706
+  VAL step 5000: IoU 0.9894  quad<4%: 0.711
+  VAL step 6000: IoU 0.9895  quad<4%: 0.714
+  VAL step 7000: IoU 0.9904  quad<4%: 0.716
+  VAL step 8000: IoU 0.9908  quad<4%: 0.719
+  VAL step 9000: IoU 0.9907  quad<4%: 0.711

@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.pt
+!net.pt
+*.log
+*.err
+smoke*
+/samples.jpg
+web/_*
+web/*.test.json
+.venv/

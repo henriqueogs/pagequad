@@ -1,0 +1,29 @@
+{
+  "n": 1000,
+  "mask_iou_mean": 0.9903,
+  "corners_within": {
+    "2pct": {
+      "all_pages": 0.3811,
+      "whole_sheet_in_photo": 0.9704,
+      "sheet_cut_by_border": 0.2859
+    },
+    "4pct": {
+      "all_pages": 0.7353,
+      "whole_sheet_in_photo": 0.9852,
+      "sheet_cut_by_border": 0.695
+    },
+    "8pct": {
+      "all_pages": 0.8888,
+      "whole_sheet_in_photo": 0.9926,
+      "sheet_cut_by_border": 0.872
+    }
+  },
+  "counts": {
+    "pages": 971,
+    "whole_sheet_in_photo": 135,
+    "sheet_cut_by_border": 836,
+    "no_page": 29
+  },
+  "median_corner_error_pct_inframe": 0.58,
+  "no_quad_found_inframe": 0
+}
