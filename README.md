@@ -92,8 +92,13 @@ a next version.
 
 ## Limitations — please read
 
-- **Trained and evaluated only on synthetic images.** There is no real-photo evaluation here. Expect a gap on real
-  photos (real texture, lighting, lens effects, clutter). Treat the numbers as an upper bound.
+- **Trained and evaluated only on synthetic images, and it does not transfer to cluttered real photos yet.** The first real
+  photo it was tried on (a spiral notepad held in a hand, on a desk with a monitor, a laptop and a phone around it)
+  came out as a mask covering 81% of the frame, i.e. "everything is paper". A classical edge/contour detector found
+  the same notepad within 0.7% of the image diagonal. So treat the numbers above as an upper bound that holds for
+  generator-like scenes only, do not use the mask on its own on busy real backgrounds, and use it (if at all) as one
+  candidate among others, and reject masks that cover almost the whole frame. Training on real photos or adding
+  much more realistic clutter to `gen.py` is the obvious next step.
 - White paper on a surface of almost the same colour and without a shadow (a difference of a few grey levels) is often
   missed, and strongly patterned surfaces (checkerboards, tablecloths) can confuse it.
 - One sheet per image. No corner refinement: accuracy is limited by the 128×128 mask (about 1% of the diagonal).
