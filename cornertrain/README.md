@@ -1,7 +1,7 @@
 # cornertrain — fine-tuning the page-corner network
 
 The scanner app finds the four corners of a page with a small neural network. This folder holds the scripts that
-adapt that network to real photos. It is the second model project of the Scanner app; the first one is the rest of this repository
+adapt that network to real photos. It is the second model project of the Scanner app; the first one is `../docmodel`
 (*pagequad*, trained on synthetic images only).
 
 ## Why this exists
@@ -21,7 +21,7 @@ adapt that network to real photos. It is the second model project of the Scanner
    training step: an early run saved weights after two steps on random noise and gave a bad baseline.)
 2. **`prep.py` — data.** Reads DocCornerDataset parquet shards, keeps all paper / receipt / book / invoice images, one
    in five ID cards and a quarter of the negatives (no document), resizes to ≤ 448 px, stores one `.npy`.
-   7 train shards = 4 093 images; 1 test shard = 577 images (held out, never trained on).
+   The 33 train shards (processed one at a time to save disk) give ~19.5 k images before `filter_sources.py`; the test shard is held out.
    Only numpy/cv2/pyarrow in the worker processes (no torch), to keep memory low.
 3. **`train.py` — fine-tuning.**
    * Input: image letter-boxed into 224×224 with black padding (the app does the same); ImageNet mean/std.
@@ -39,7 +39,7 @@ adapt that network to real photos. It is the second model project of the Scanner
    the original (`input` 1×3×224×224, `output` 1×4×224×224), maximum difference to the PyTorch module 9e-7. The file
    is copied to `app/corners.onnx`.
 
-## How the app uses the network (see `app/index.html` of the Scanner app, `CornerNet`)
+## How the app uses the network (see `app/index.html`, `CornerNet`)
 
 * Runs with onnxruntime-web (wasm, one thread), offline, about 340 ms per run on the test phone (Galaxy S23).
 * **Top-3 peaks per corner**, then the combination with the highest total confidence minus a penalty for not being a
@@ -81,16 +81,23 @@ committed.
 
 ## Results
 
-Held-out test shard (577 images, worst corner / frame diagonal):
+**Licence-clean run (the one shipped).** `filter_sources.py` removes MIDV-500 and SmartDoc (research use only) and every identity-card / passport
+collection (personal data). What is left is documents, receipts, bills, books and paper sheets (mostly Roboflow Universe sets, licences to be
+confirmed one by one) plus COCO negatives (CC BY 4.0): 15 441 training images, 455 held-out validation images. Training starts again from the
+original MIT weights, not from any earlier fine-tune.
+
+Held-out set, worst corner / frame diagonal:
 
 | Model | median | < 3 % | > 10 % |
 |---|---|---|---|
-| original (KennethTM) | 2.9 % | 51 % | 36 % |
-| epoch 0 of fine-tuning | 1.0 % | 69 % | 18 % |
-| final (epoch 6 of the second run) | 0.84 % | 74 % | 13 % |
+| original (KennethTM, MIT) | 2.4 % | 54 % | 32 % |
+| fine-tuned, epoch 2 of 5 (best kept) | 0.77 % | 73.5 % | 12.2 % |
 
-Own photos (notebook ×2, book on table, book on lap): original confidences 0.06–0.5 with one wrong corner;
-fine-tuned 0.6–0.9 and all corners on the page.
+(The run was stopped by an out-of-memory error in epoch 3; the best epoch had been saved, so that checkpoint is the one exported.)
+
+Own photos (notebook x2, book on table, book on lap): original confidences 0.06-0.5 with one wrong corner; fine-tuned 0.8-0.94, all corners on the page.
+
+An earlier run that also used MIDV-500 / SmartDoc / ID cards reached 0.84 % and 13 % on a different, mixed validation set; it was discarded for licence reasons.
 
 ## Next ideas
 

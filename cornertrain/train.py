@@ -81,7 +81,7 @@ if __name__ == '__main__':
     for ep in range(epochs):
         t0 = time.time(); run = 0
         for x, hm, _, _ in tl:
-            lr = 2e-4 * (.5 * (1 + math.cos(math.pi * step / total))) * min(1, (step + 1) / 50); [g.__setitem__('lr', lr) for g in opt.param_groups]
+            lr = 3e-4 * (.5 * (1 + math.cos(math.pi * step / total))) * min(1, (step + 1) / 50); [g.__setitem__('lr', lr) for g in opt.param_groups]
             p = model(x); loss = ((p - hm) ** 2 * (1 + 30 * hm)).mean() * 100
             opt.zero_grad(); loss.backward(); opt.step(); step += 1; run += float(loss)
             if step % 20 == 0: print(f'ep{ep} step{step}/{total} loss {run / 20:.3f} {time.time() - t0:.0f}s', flush=True); run = 0
