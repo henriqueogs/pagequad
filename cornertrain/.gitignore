@@ -1,0 +1,6 @@
+*.pt
+*.npy
+*.log
+*.jpg
+__pycache__/
+nohup.out
