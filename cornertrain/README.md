@@ -44,7 +44,7 @@ adapt that network to real photos. It is the second model project of the Scanner
 * Runs with onnxruntime-web (wasm, one thread), offline, about 340 ms per run on the test phone (Galaxy S23).
 * **Top-3 peaks per corner**, then the combination with the highest total confidence minus a penalty for not being a
   parallelogram in perspective. A single stray second peak used to drag one corner across the frame.
-* **Photo**: two passes (whole frame, then a zoomed crop around the first answer). The result is compared with the
+* **Photo**: one pass (a second, zoomed pass was measured and dropped: no gain on 455 held-out images, and it moved a corner on a real photo). The result is compared with the
   classical detector: if the worst corner differs by more than 4 % of the diagonal the network wins; if they agree the
   classical outline is kept because it also measures the bend of the sheet.
 * **Live preview**: one pass per detection, median of the last 3 results, and in between the outline is carried by
