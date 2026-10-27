@@ -92,8 +92,9 @@ Held-out set, worst corner / frame diagonal:
 |---|---|---|---|
 | original (KennethTM, MIT) | 2.4 % | 54 % | 32 % |
 | fine-tuned, epoch 2 of 5 (best kept) | 0.77 % | 73.5 % | 12.2 % |
+| + 2 more epochs from that checkpoint, lr 1e-4 (best kept, shipped) | 0.76 % | 77.6 % | **9.3 %** |
 
-(The run was stopped by an out-of-memory error in epoch 3; the best epoch had been saved, so that checkpoint is the one exported.)
+(The first run was stopped by an out-of-memory error in epoch 3 of 5; the best epoch had been saved. A second run, `W=0 LR=1e-4 python train.py ... 2 out.pt best.pt`, resumed from it with all data loading in the main process, which fits in about 1 GB of RAM.)
 
 Own photos (notebook x2, book on table, book on lap): original confidences 0.06-0.5 with one wrong corner; fine-tuned 0.8-0.94, all corners on the page.
 

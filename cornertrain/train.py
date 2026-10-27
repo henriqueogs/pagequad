@@ -1,5 +1,5 @@
 """Fine-tune the page-corner heatmap network (MobileNetV3-small U-Net, 4 heatmaps: TL TR BR BL) on real document photos."""
-import sys, time, math, random, numpy as np, cv2, torch
+import os, sys, time, math, random, numpy as np, cv2, torch
 N = 224
 def order(p):
     s = p.sum(1); d = p[:, 0] - p[:, 1]
@@ -74,14 +74,14 @@ if __name__ == '__main__':
     tr = list(np.load(train_npy, allow_pickle=True)); va = list(np.load(val_npy, allow_pickle=True))
     print(len(tr), 'train', len(va), 'val', flush=True)
     model = torch.load(sys.argv[5] if len(sys.argv) > 5 else 'start.pt', weights_only=False); model.train()
-    tl = torch.utils.data.DataLoader(DS(tr, True), batch_size=16, shuffle=True, num_workers=2, drop_last=True, persistent_workers=True)
+    tl = torch.utils.data.DataLoader(DS(tr, True), batch_size=16, shuffle=True, num_workers=int(os.environ.get('W', '2')), drop_last=True, persistent_workers=int(os.environ.get('W', '2')) > 0)
     vl = torch.utils.data.DataLoader(DS(va, False), batch_size=16, num_workers=0)
     print('start', evaluate(model, vl), flush=True)
     opt = torch.optim.AdamW(model.parameters(), 3e-4, weight_decay=1e-4); total = epochs * len(tl); step = 0; best = 9
     for ep in range(epochs):
         t0 = time.time(); run = 0
         for x, hm, _, _ in tl:
-            lr = 3e-4 * (.5 * (1 + math.cos(math.pi * step / total))) * min(1, (step + 1) / 50); [g.__setitem__('lr', lr) for g in opt.param_groups]
+            lr = float(os.environ.get('LR', '3e-4')) * (.5 * (1 + math.cos(math.pi * step / total))) * min(1, (step + 1) / 50); [g.__setitem__('lr', lr) for g in opt.param_groups]
             p = model(x); loss = ((p - hm) ** 2 * (1 + 30 * hm)).mean() * 100
             opt.zero_grad(); loss.backward(); opt.step(); step += 1; run += float(loss)
             if step % 20 == 0: print(f'ep{ep} step{step}/{total} loss {run / 20:.3f} {time.time() - t0:.0f}s', flush=True); run = 0
